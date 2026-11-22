@@ -1,0 +1,73 @@
+import numpy as np
+
+def cholesky(A):
+    A = np.array(A, dtype=float)
+    n = len(A)
+    L = np.zeros((n, n))
+    
+    for i in range(n):
+        suma = sum(L[i, k]**2 for k in range(i))
+        L[i, i] = np.sqrt(A[i, i] - suma)
+        
+        for j in range(i + 1, n):
+            suma = sum(L[j, k] * L[i, k] for k in range(i))
+            L[j, i] = (A[j, i] - suma) / L[i, i]
+    
+    return L
+
+
+def forward_substitution(L, b):
+    n = len(b)
+    y = np.zeros(n)
+    for i in range(n):
+        y[i] = (b[i] - sum(L[i, k] * y[k] for k in range(i))) / L[i, i]
+    return y
+
+
+def backward_substitution(L, y):
+    n = len(y)
+    x = np.zeros(n)
+    for i in range(n - 1, -1, -1):
+        x[i] = (y[i] - sum(L[i, k] * x[k] for k in range(i + 1, n))) / L[i, i]
+    return x
+
+
+def solve(A, b):
+    L = cholesky(A)
+    y = forward_substitution(L, b)
+    x = backward_substitution(L.T, y)
+    return x
+
+
+if __name__ == "__main__":
+    A = np.array([
+        [3, 0, 1],
+        [0, 3, 0],
+        [1, 0, 3]
+    ], dtype=float)
+    
+    L = cholesky(A)
+    
+    print("L:")
+    print(L)
+    print("\nA = L·L^T:")
+    print(L @ L.T)
+    print("\nA original:")
+    print(A)
+    
+    print("\nVerificación con NumPy:")
+    L_np = np.linalg.cholesky(A)
+    print("L (NumPy):")
+    print(L_np)
+    print("\nL·L^T (NumPy):")
+    print(L_np @ L_np.T)
+    
+    b = np.array([1, 2, 3], dtype=float)
+    x = solve(A, b)
+    
+    print("\n\nSolución x:")
+    print(x)
+    print("\nVerificación A·x:")
+    print(A @ x)
+    print("\nVector b:")
+    print(b)
